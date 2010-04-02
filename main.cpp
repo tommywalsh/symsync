@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
 
-    SyncTreeWidget tw(QDir("/media/mcotp/mcotp"));
+    SyncTreeWidget tw(QDir("/media/mcotp/mcotp"), QDir("/media/mcotp/mobile"));
     tw.show();
 
     app.exec();	   

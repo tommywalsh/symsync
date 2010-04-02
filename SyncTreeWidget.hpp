@@ -7,8 +7,13 @@
 
 class SyncTreeWidget : public QTreeWidget
 {
+private:
+    QDir m_master, m_copy;
+private slots:
+    void onExpanded(QTreeWidgetItem* item);
 public:
-    SyncTreeWidget(QDir master/*, QDir copy*/);
+    SyncTreeWidget(QDir master, QDir copy);
+Q_OBJECT
 };
 
 #endif

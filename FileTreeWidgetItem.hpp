@@ -14,7 +14,7 @@ private:
     QFileInfo m_fileInfo;
 public:
     FileTreeWidgetItem(const QFileInfo& fi);
-    void loadKids();    
+    void loadKids(QDir master, QDir copy);
 };
 
 #endif
