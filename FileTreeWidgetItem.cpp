@@ -1,8 +1,7 @@
-#include "JITFileTreeWidget.hpp"
-#include <QDirIterator>
+#include "FileTreeWidgetItem.hpp"
+#include <QDir>
 
-
-JITFileTreeWidget::JITFileTreeWidget(const QFileInfo& fi) :
+FileTreeWidgetItem::FileTreeWidgetItem(const QFileInfo& fi) :
     m_childrenAdded(!(fi.isDir())),  // not dir => no kids to add
     m_fileInfo(fi)
 {
@@ -11,17 +10,7 @@ JITFileTreeWidget::JITFileTreeWidget(const QFileInfo& fi) :
 }
 
 
-JITFileTreeWidget::JITFileTreeWidget(const QFileInfo& fi, JITFileTreeWidget* parent) :
-    QTreeWidgetItem(parent, 1049),
-    m_childrenAdded(false),
-    m_fileInfo(fi)
-
-{
-    setCheckState(0, Qt::Unchecked);
-    setText(0, m_fileInfo.fileName());    
-}
-
-void JITFileTreeWidget::loadKids()
+void FileTreeWidgetItem::loadKids()
 {
     if (!m_childrenAdded) {
 
@@ -30,7 +19,7 @@ void JITFileTreeWidget::loadKids()
 	QFileInfoList fil = dir.entryInfoList(QDir::Dirs|QDir::Files|QDir::NoDotAndDotDot);
 	
 	for (QFileInfoList::const_iterator i = fil.constBegin(); i != fil.constEnd(); ++i) {
-	    JITFileTreeWidget* newKid = new JITFileTreeWidget(*i);
+	    FileTreeWidgetItem* newKid = new FileTreeWidgetItem(*i);
 	    addChild(newKid);
 	}
 	m_childrenAdded = true;

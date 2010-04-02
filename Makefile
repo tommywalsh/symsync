@@ -3,8 +3,8 @@ LDFLAGS+=$(addprefix -l, $(QT_INCS))
 QT_PRE:=/usr/include/qt4/
 CXXFLAGS+=-g -Wall $(addprefix -I$(QT_PRE), $(QT_INCS)) -I$(QT_PRE)
 
-PLAIN_FILE_BASES:=main 
-MOCABLE_FILE_BASES:=JITFileTreeWidget
+PLAIN_FILE_BASES:=main FileTreeWidgetItem
+MOCABLE_FILE_BASES:=SyncTreeWidget
 
 MOC_FILE_BASES:=$(addsuffix _moc, $(MOCABLE_FILE_BASES))
 HAND_FILE_BASES:=$(PLAIN_FILE_BASES) $(MOCABLE_FILE_BASES)
