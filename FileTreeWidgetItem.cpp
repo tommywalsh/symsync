@@ -1,6 +1,7 @@
 #include "FileTreeWidgetItem.hpp"
 #include <QDir>
 #include <QFileInfo>
+#include <cassert>
 
 namespace {
     QFileInfo translateName(QFileInfo source, QDir master, QDir copy)
@@ -11,19 +12,56 @@ namespace {
 			  copy.absolutePath());
 	return QFileInfo(dstPath);
     }
+
+    void setCheckStatusBySyncStatus(FileTreeWidgetItem* ftw, QFileInfo syncFile)
+    {
+	if (syncFile.exists()) {
+	    if (syncFile.isSymLink()) {
+		ftw->setCheckState(0, Qt::Checked);
+	    } else {
+		ftw->setCheckState(0, Qt::PartiallyChecked);
+	    }
+	} else {
+	    ftw->setCheckState(0, Qt::Unchecked);
+	}
+    }
+
 }
 
-FileTreeWidgetItem* FileTreeWidgetItem::makeTreeItem(QFileInfo info, QDir master, QDir copy) {
+FileTreeWidgetItem* FileTreeWidgetItem::makeTreeItem(QFileInfo info, QDir master, QDir copy, QTreeWidgetItem* parent) {
     FileTreeWidgetItem* ftw = new FileTreeWidgetItem(info);
-    QFileInfo syncFile = translateName(info, master, copy);
-    if (syncFile.exists()) {
-	if (syncFile.isSymLink()) {
-	    ftw->setCheckState(0, Qt::Checked);
-	} else {
-	    ftw->setCheckState(0, Qt::PartiallyChecked);
-	}
+
+    // We can determine our checked/checkable state by examining our parent
+    //
+    //   PARENT STATUS                |  NEW ITEM STATUS
+    // 1 No parent                    | Checkable (status depends on target area)
+    // 2 Uncheckable                  | Uncheckable
+    // 3 Checkable, Unchecked         | Checkable, unchecked
+    // 4 Partially checked            | Checkable (status depends on target area)
+    // 5 Checked                      | Uncheckable
+    
+    if (!parent) {
+	// case 1
+	setCheckStatusBySyncStatus(ftw, translateName(info, master, copy));
     } else {
-	ftw->setCheckState(0, Qt::Unchecked);
+	if (parent->flags() & Qt::ItemIsUserCheckable) {
+	    Qt::CheckState ps = parent->checkState(0);
+	    if (ps == Qt::Checked) {
+		// case 5
+		ftw->setFlags(ftw->flags() & !Qt::ItemIsUserCheckable);
+	    } else if (ps == Qt::PartiallyChecked) {
+		// case 4
+		setCheckStatusBySyncStatus(ftw, translateName(info, master, copy));
+	    } else {
+		// case 3
+		assert(ps == Qt::Unchecked);
+		ftw->setCheckState(0, Qt::Unchecked);
+	    }
+	} else {
+	    // case 2
+	    ftw->setFlags(ftw->flags() & !Qt::ItemIsUserCheckable);
+	}
+	parent->addChild(ftw);
     }
     return ftw;
 }
@@ -46,7 +84,7 @@ void FileTreeWidgetItem::loadKids(QDir master, QDir copy)
 	QFileInfoList fil = dir.entryInfoList(QDir::Dirs|QDir::Files|QDir::NoDotAndDotDot);
 	
 	for (QFileInfoList::const_iterator i = fil.constBegin(); i != fil.constEnd(); ++i) {
-	    addChild(makeTreeItem(*i, master, copy));
+	    makeTreeItem(*i, master, copy, this);
 	}
 	m_childrenAdded = true;
     }

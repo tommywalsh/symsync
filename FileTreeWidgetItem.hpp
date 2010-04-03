@@ -15,7 +15,7 @@ private:
 public:
     FileTreeWidgetItem(const QFileInfo& fi);
     void loadKids(QDir master, QDir copy);
-    static FileTreeWidgetItem* makeTreeItem(QFileInfo info, QDir master, QDir copy);
+    static FileTreeWidgetItem* makeTreeItem(QFileInfo info, QDir master, QDir copy, QTreeWidgetItem* parent = NULL);
 
 };
 
