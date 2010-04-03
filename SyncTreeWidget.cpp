@@ -62,6 +62,36 @@ namespace {
 	}	
     }
 
+    void unsync_file(QFileInfo masterFile, QDir masterRoot, QDir copyRoot)
+    {
+	QString masterPath = masterFile.absoluteFilePath();
+	QString copyPath = masterPath;
+	copyPath.replace(masterRoot.absolutePath(), copyRoot.absolutePath());
+	QFileInfo copyFile(copyPath);
+	assert(copyFile.exists() && copyFile.isSymLink());
+	QFile::remove(copyFile.absoluteFilePath());
+
+	// We might still need to remove parent directories, if they are empty
+	// This function does exactly what we want
+	QDir dummy;
+	dummy.rmpath(copyFile.dir().absolutePath());
+
+    }
+
+    void sync_file(QFileInfo masterFile, QDir masterRoot, QDir copyRoot)
+    {
+	QString masterPath = masterFile.absoluteFilePath();
+	QString copyPath = masterPath;
+	copyPath.replace(masterRoot.absolutePath(), copyRoot.absolutePath());
+	QFileInfo copyFile(copyPath);
+	assert(!copyFile.exists());
+	
+	QDir dummy;
+	dummy.mkpath(copyFile.dir().absolutePath());
+	
+	QFile source(masterPath);
+	source.link(copyPath);
+    }
 
 }
 
@@ -101,13 +131,21 @@ void SyncTreeWidget::onPressed(QTreeWidgetItem * item, int column)
 {
     if (column == 0 && (item->flags() & Qt::ItemIsUserCheckable)) {
 	Qt::CheckState ps = item->checkState(0);	
+	FileTreeWidgetItem* ftw = dynamic_cast<FileTreeWidgetItem*>(item);
+	assert(ftw);
 	if (ps == Qt::Checked) {
 	    propagateCheckabilityDown(item, true);
 	    propagateCheckUpdateUp(item);
+	    
+	    unsync_file(ftw->fileInfo(), m_master, m_copy);
+	    
 	} else {
 	    assert (ps == Qt::Unchecked);
 	    propagateCheckabilityDown(item, false);
 	    propagatePartialCheckUp(item);
+
+	    // We used to be unsynced, now we need to sync
+	    sync_file(ftw->fileInfo(), m_master, m_copy);
 	}
     }
 }
