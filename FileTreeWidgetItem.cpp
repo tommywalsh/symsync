@@ -17,16 +17,20 @@ namespace {
     {
 	if (syncFile.exists()) {
 	    if (syncFile.isSymLink()) {
+		ftw->setFlags(ftw->flags() | Qt::ItemIsUserCheckable);
 		ftw->setCheckState(0, Qt::Checked);
 	    } else {
 		ftw->setCheckState(0, Qt::PartiallyChecked);
+		ftw->setFlags(ftw->flags() & ~Qt::ItemIsUserCheckable);
 	    }
 	} else {
+	    ftw->setFlags(ftw->flags() | Qt::ItemIsUserCheckable);
 	    ftw->setCheckState(0, Qt::Unchecked);
 	}
     }
 
 }
+
 
 FileTreeWidgetItem* FileTreeWidgetItem::makeTreeItem(QFileInfo info, QDir master, QDir copy, QTreeWidgetItem* parent) {
     FileTreeWidgetItem* ftw = new FileTreeWidgetItem(info);
@@ -34,32 +38,34 @@ FileTreeWidgetItem* FileTreeWidgetItem::makeTreeItem(QFileInfo info, QDir master
     // We can determine our checked/checkable state by examining our parent
     //
     //   PARENT STATUS                |  NEW ITEM STATUS
-    // 1 No parent                    | Checkable (status depends on target area)
-    // 2 Uncheckable                  | Uncheckable
+    // 1 No parent                    | Depends on target area
+    // 2 Uncheckable (not partially)  | Uncheckable
     // 3 Checkable, Unchecked         | Checkable, unchecked
-    // 4 Partially checked            | Checkable (status depends on target area)
+    // 4 Partially checked            | Depends on target area
     // 5 Checked                      | Uncheckable
     
     if (!parent) {
 	// case 1
 	setCheckStatusBySyncStatus(ftw, translateName(info, master, copy));
     } else {
-	if (parent->flags() & Qt::ItemIsUserCheckable) {
+	Qt::CheckState ps = parent->checkState(0);
+	if (ps == Qt::PartiallyChecked) {
+	    // case 4
+	    setCheckStatusBySyncStatus(ftw, translateName(info, master, copy));
+	} else if (parent->flags() & Qt::ItemIsUserCheckable) {
 	    Qt::CheckState ps = parent->checkState(0);
 	    if (ps == Qt::Checked) {
 		// case 5
-		ftw->setFlags(ftw->flags() & !Qt::ItemIsUserCheckable);
-	    } else if (ps == Qt::PartiallyChecked) {
-		// case 4
-		setCheckStatusBySyncStatus(ftw, translateName(info, master, copy));
+		ftw->setFlags(ftw->flags() & ~Qt::ItemIsUserCheckable);
 	    } else {
+		assert (ps == Qt::Unchecked);
 		// case 3
 		assert(ps == Qt::Unchecked);
 		ftw->setCheckState(0, Qt::Unchecked);
 	    }
 	} else {
 	    // case 2
-	    ftw->setFlags(ftw->flags() & !Qt::ItemIsUserCheckable);
+	    ftw->setFlags(ftw->flags() & ~Qt::ItemIsUserCheckable);
 	}
 	parent->addChild(ftw);
     }
