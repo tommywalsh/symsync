@@ -6,9 +6,6 @@ A simple directory tree GUI is presented, and the user may check
 or uncheck any file or directory.  Checking creates a symlink in 
 the sync area; unchecking removes the symlink. 
 
-Right now, this is hardcoded to a particular path, but can be 
-easily changed if anybody else out there ever wants to use this.
-
 An example use would be when you have an extensive music library
 and want also to have a disk area for your favorites.  Pick your 
 favorite bands, albums, songs, and "sync" them.  Because symlinks
