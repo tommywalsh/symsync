@@ -86,10 +86,11 @@ namespace {
 	QFileInfo copyFile(copyPath);
 	assert(!copyFile.exists());
 	
-	QDir dummy;
-	dummy.mkpath(copyFile.dir().absolutePath());
-	
-	QFile source(masterPath);
+	QDir dirWithLink = copyFile.dir();
+	dirWithLink.mkpath(dirWithLink.absolutePath());
+
+        QString relativeSourceString = dirWithLink.relativeFilePath(masterPath);
+	QFile source(relativeSourceString);
 	source.link(copyPath);
     }
 
