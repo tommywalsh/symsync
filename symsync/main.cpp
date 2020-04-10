@@ -1,12 +1,9 @@
 #include <QApplication>
 #include <QDir>
 #include <iostream>
-#include "SyncTreeWidget.hpp"
+#include "synctreewidget.h"
 
-
-
-
-int main(int argc, char** argv)
+int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
@@ -22,19 +19,15 @@ int main(int argc, char** argv)
                 SyncTreeWidget tw(srcDir, dstDir);
                 std::cout << "done.\n";
                 tw.show();
-                
                 app.exec();
                 success = true;
             }
         }
     }
-
     if (!success) {
         std::cout << "Usage: " << argv[0] << " srcdir dstdir\n";
         std::cout << "    Both srcdir and dstdir must exist\n";
         std::cout << "\n";
         std::cout << "Makes/destroys symlinks in dstdir that point to srcdir\n";
     }
-        
-
 }
